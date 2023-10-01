@@ -1,0 +1,6 @@
+﻿namespace HNGxVideoStreaming.videos
+{
+    public class text
+    {
+    }
+}

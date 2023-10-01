@@ -362,6 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /HNGxVideoStreaming/appsettings.Development.json
-/HNGxVideoStreaming/videos/**
 /HNGxVideoStreaming/ggml-base.bin
 /HNGxVideoStreaming/ggml-base.bin
