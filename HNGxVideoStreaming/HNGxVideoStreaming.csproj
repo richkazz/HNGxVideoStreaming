@@ -25,9 +25,4 @@
     <PackageReference Include="Whisper.net.Runtime" Version="1.4.7" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="audios\" />
-    <Folder Include="videos\" />
-  </ItemGroup>
-
 </Project>
