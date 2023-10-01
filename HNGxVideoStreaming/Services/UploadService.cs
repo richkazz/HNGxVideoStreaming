@@ -43,6 +43,7 @@ namespace HNGxVideoStreaming.Services
         {
             try
             {
+                _logger.LogInformation("Starting upload of file {fileName}", fileName);
                 string allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"; // You can customize this as needed
                 int keyLength = 16;
 
@@ -50,11 +51,13 @@ namespace HNGxVideoStreaming.Services
                 _dbContext.UploadContexts.Add(new UploadContext() { UploadKey = generatedKey, currentId = 1, FileName = fileName, isUploading = true }); ;
                 await _dbContext.SaveChangesAsync();
                 _responseData.Data = new { uploadKey = generatedKey };
+                _logger.LogInformation("StartUpload: Successfully started upload for file: {FileName}", fileName);
             }
             catch (Exception ex)
             {
                 _responseData.ErrorMessage = ex.Message;
                 _responseData.IsSuccess = false;
+                _logger.LogError(ex, "StartUpload: Error starting upload for file: {FileName}", fileName);
             }
             return _responseData;
         }
@@ -95,11 +98,14 @@ namespace HNGxVideoStreaming.Services
                 uploadContext.currentId++;
                 _dbContext.UploadContexts.Update(uploadContext);
                 await _dbContext.SaveChangesAsync();
+                _logger.LogInformation("UploadChunks: Successfully uploaded chunk for uploadKey: {UploadKey}", uploadKey);
+
             }
             catch (Exception ex)
             {
                 _responseData.ErrorMessage = ex.Message;
                 _responseData.IsSuccess = false;
+                _logger.LogError(ex, "UploadChunks: Error uploading chunk for uploadKey: {UploadKey}", uploadKey);
             }
             return _responseData;
         }
@@ -144,11 +150,13 @@ namespace HNGxVideoStreaming.Services
                 _responseData.Data = new { videoUrl = VideoUrl(uploadKey), transcribe = list };
                 //Delete temporary mp3 audio
                 File.Delete(audioFilePath);
+                _logger.LogInformation("UploadComplete: Successfully completed upload for uploadKey: {UploadKey}", uploadKey);
             }
             catch (Exception ex)
             {
                 _responseData.ErrorMessage = ex.Message;
                 _responseData.IsSuccess = false;
+                _logger.LogError(ex, "UploadComplete: Error completing upload for uploadKey: {UploadKey}", uploadKey);
             }
             return _responseData;
         }
@@ -237,9 +245,7 @@ namespace HNGxVideoStreaming.Services
 
         public async Task<ResponseContext> GetAll()
         {
-            _logger.LogInformation(tempFolder);
             var result = await _dbContext.UploadContexts.Include(x => x.TranscribedData).ToListAsync();
-
             _responseData.Data = result.Select(x => new ResponseUploadContext
             {
                 uploadContext = x,
