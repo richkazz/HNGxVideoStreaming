@@ -35,8 +35,10 @@ namespace HNGxVideoStreaming.Services
             _dbContext = dbContext;
             _logger = logger;
             chunkSize = 1048576 * Convert.ToInt32(configuration["ChunkSize"]);
-            tempFolder = Path.Combine(hostingEnvironment.ContentRootPath, "videos");
-            tempAudioFolder = Path.Combine(hostingEnvironment.ContentRootPath, "audios");
+            tempFolder = Path.GetTempPath();
+            //tempFolder = Path.Combine(hostingEnvironment.ContentRootPath, "videos");
+            tempAudioFolder = Path.GetTempPath();
+            //tempAudioFolder = Path.Combine(hostingEnvironment.ContentRootPath, "audios");
             _responseData = new ResponseContext();
         }
         public async Task<ResponseContext> StartUpload(string fileName)
@@ -245,7 +247,7 @@ namespace HNGxVideoStreaming.Services
 
         public async Task<ResponseContext> GetAll()
         {
-            _logger.LogInformation(Path.GetTempPath());
+            
             var result = await _dbContext.UploadContexts.Include(x => x.TranscribedData).ToListAsync();
             _responseData.Data = result.Select(x => new ResponseUploadContext
             {
