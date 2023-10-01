@@ -245,6 +245,7 @@ namespace HNGxVideoStreaming.Services
 
         public async Task<ResponseContext> GetAll()
         {
+            _logger.LogInformation(Path.GetTempPath());
             var result = await _dbContext.UploadContexts.Include(x => x.TranscribedData).ToListAsync();
             _responseData.Data = result.Select(x => new ResponseUploadContext
             {
