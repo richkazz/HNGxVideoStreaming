@@ -9,13 +9,16 @@ namespace HNGxVideoStreaming.Controllers
     [Route("[controller]")]
     public class VideoUploadController : ControllerBase
     {
+        private readonly ILogger<VideoUploadController> _logger;
         private readonly IUploadService UploadService;
         private readonly IWhisperService WhisperService;
 
         public VideoUploadController(
              IWhisperService whisperService,
+             ILogger<VideoUploadController> logger,
             IUploadService uploadService)
         {
+            _logger = logger;
             WhisperService = whisperService;
             UploadService = uploadService;
         }

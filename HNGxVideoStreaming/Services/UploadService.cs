@@ -1,14 +1,9 @@
-﻿using Azure;
-using Azure.Core;
-using HNGxVideoStreaming.Controllers;
+﻿using HNGxVideoStreaming.Controllers;
 using HNGxVideoStreaming.Data;
 using HNGxVideoStreaming.Helpers;
 using HNGxVideoStreaming.Interface;
 using HNGxVideoStreaming.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using NAudio.Wave;
-using System.Net;
 using System.Text;
 
 namespace HNGxVideoStreaming.Services
@@ -19,7 +14,7 @@ namespace HNGxVideoStreaming.Services
 
         private IConfiguration configuration;
         private IWebHostEnvironment _hostingEnvironment;
-        private readonly ILogger<VideoUploadController> _logger;
+        private readonly ILogger<UploadService> _logger;
         private readonly ResponseContext _responseData;
         private readonly IWhisperService WhisperService;
         private readonly HNGxVideoStreamingDbContext _dbContext;
@@ -31,7 +26,7 @@ namespace HNGxVideoStreaming.Services
             IWebHostEnvironment hostingEnvironment,
             IHttpContextAccessor httpContextAccessor,
             IWhisperService whisperService,
-            ILogger<VideoUploadController> logger, HNGxVideoStreamingDbContext dbContext)
+            ILogger<UploadService> logger, HNGxVideoStreamingDbContext dbContext)
         {
             _httpContextAccessor = httpContextAccessor;
             WhisperService = whisperService;
@@ -40,7 +35,6 @@ namespace HNGxVideoStreaming.Services
             _dbContext = dbContext;
             _logger = logger;
             chunkSize = 1048576 * Convert.ToInt32(configuration["ChunkSize"]);
-            var path = Path.GetTempPath();
             tempFolder = Path.Combine(hostingEnvironment.ContentRootPath, "videos");
             tempAudioFolder = Path.Combine(hostingEnvironment.ContentRootPath, "audios");
             _responseData = new ResponseContext();
@@ -243,6 +237,7 @@ namespace HNGxVideoStreaming.Services
 
         public async Task<ResponseContext> GetAll()
         {
+            _logger.LogInformation(tempFolder);
             var result = await _dbContext.UploadContexts.Include(x => x.TranscribedData).ToListAsync();
 
             _responseData.Data = result.Select(x => new ResponseUploadContext
