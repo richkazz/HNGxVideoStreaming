@@ -42,7 +42,11 @@ namespace HNGxVideoStreaming.Services
                     Start = result.Start,
                     End = result.End,
                     Text = result.Text,
-                    UploadKeyId = uploadKeyId
+                    UploadKeyId = uploadKeyId,
+                    CreatedDate = DateTime.UtcNow,
+                    LastModifiedDate = DateTime.UtcNow,
+                    CreatedBy = nameof(WhisperService),
+                    LastModifiedBy = nameof(WhisperService)
                 });
             }
             if (fileStream != null) fileStream.Close();

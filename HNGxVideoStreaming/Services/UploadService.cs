@@ -50,7 +50,17 @@ namespace HNGxVideoStreaming.Services
                 int keyLength = 16;
 
                 string generatedKey = GenerateRandomKey(allowedChars, keyLength) + ".mp4";
-                _dbContext.UploadContexts.Add(new UploadContext() { UploadKey = generatedKey, currentId = 1, FileName = fileName, isUploading = true }); ;
+                _dbContext.UploadContexts.Add(new UploadContext() 
+                { 
+                    UploadKey = generatedKey,
+                    currentId = 1,
+                    FileName = fileName,
+                    isUploading = true,
+                    CreatedDate = DateTime.UtcNow,
+                    LastModifiedDate = DateTime.UtcNow,
+                    CreatedBy = nameof(UploadService),
+                    LastModifiedBy = nameof(UploadService)
+                }); ;
                 await _dbContext.SaveChangesAsync();
                 _responseData.Data = new { uploadKey = generatedKey };
                 _logger.LogInformation("StartUpload: Successfully started upload for file: {FileName}", fileName);
@@ -66,6 +76,7 @@ namespace HNGxVideoStreaming.Services
 
         public async Task<ResponseContext> UploadChunks(string uploadKey)
         {
+            string temporaryVideoChunkPath = string.Empty;
             try
             {
                 #region check if upload key exists
@@ -87,8 +98,8 @@ namespace HNGxVideoStreaming.Services
                 #endregion
                 var fileName = uploadKey;
                 var chunkNumber = uploadContext.currentId.ToString();
-                string newpath = Path.Combine(tempFolder, fileName + chunkNumber);
-                using (FileStream fs = File.Create(newpath))
+                temporaryVideoChunkPath = Path.Combine(tempFolder, fileName + chunkNumber);
+                using (FileStream fs = File.Create(temporaryVideoChunkPath))
                 {
                     byte[] bytes = new byte[chunkSize];
                     int bytesRead = 0;
@@ -98,13 +109,19 @@ namespace HNGxVideoStreaming.Services
                     }
                 }
                 uploadContext.currentId++;
+                uploadContext.LastModifiedDate = DateTime.UtcNow;
                 _dbContext.UploadContexts.Update(uploadContext);
                 await _dbContext.SaveChangesAsync();
                 _logger.LogInformation("UploadChunks: Successfully uploaded chunk for uploadKey: {UploadKey}", uploadKey);
-
             }
             catch (Exception ex)
             {
+                #region Delete chunk file from disk if fails
+                if (File.Exists(temporaryVideoChunkPath))
+                {
+                    File.Delete(temporaryVideoChunkPath);
+                }
+                #endregion
                 _responseData.ErrorMessage = ex.Message;
                 _responseData.IsSuccess = false;
                 _logger.LogError(ex, "UploadChunks: Error uploading chunk for uploadKey: {UploadKey}", uploadKey);
@@ -143,6 +160,7 @@ namespace HNGxVideoStreaming.Services
                 AudioHelpers.ExtractAudioFromVideo(videoFilePath, audioFilePath);
 
                 uploadContext.isUploading = false;
+                uploadContext.LastModifiedDate = DateTime.UtcNow;
                 _dbContext.UploadContexts.Update(uploadContext);
 
                 var list = await WhisperService.Transcribe(audioFilePath, uploadContext.Id);
@@ -256,6 +274,54 @@ namespace HNGxVideoStreaming.Services
             }).ToList();
             return _responseData;
         }
+
+        public async Task<ResponseContext> DeleteVideo(string uploadKey)
+        {
+            try
+            {
+                #region Check if upload key exists
+                var uploadContext = await _dbContext.UploadContexts.FirstOrDefaultAsync(x => x.UploadKey == uploadKey);
+                if (uploadContext == null)
+                {
+                    _responseData.ErrorMessage = "Upload key does not exist";
+                    _responseData.IsSuccess = false;
+                    return _responseData;
+                }
+                #endregion
+
+                #region Delete video file from disk
+                string videoFilePath = Path.Combine(tempFolder, uploadKey);
+                if (File.Exists(videoFilePath))
+                {
+                    File.Delete(videoFilePath);
+                }
+                #endregion
+
+                #region Delete associated transcription data
+                var transcriptions = await _dbContext.TranscribeDatas.Where(x => x.UploadKeyId == uploadContext.Id).ToListAsync();
+                _dbContext.TranscribeDatas.RemoveRange(transcriptions);
+                await _dbContext.SaveChangesAsync();
+                #endregion
+
+                #region Delete upload context from the database
+                _dbContext.UploadContexts.Remove(uploadContext);
+                await _dbContext.SaveChangesAsync();
+                #endregion
+
+                _responseData.IsSuccess = true;
+                _responseData.ErrorMessage = null;
+                _logger.LogInformation("DeleteVideo: Successfully deleted video for uploadKey: {UploadKey}", uploadKey);
+            }
+            catch (Exception ex)
+            {
+                _responseData.ErrorMessage = ex.Message;
+                _responseData.IsSuccess = false;
+                _logger.LogError(ex, "DeleteVideo: Error deleting video for uploadKey: {UploadKey}", uploadKey);
+            }
+
+            return _responseData;
+        }
+
     }
 
 }

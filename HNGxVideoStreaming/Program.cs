@@ -1,3 +1,4 @@
+using HNGxVideoStreaming.BackgroundServices;
 using HNGxVideoStreaming.Data;
 using HNGxVideoStreaming.Interface;
 using HNGxVideoStreaming.Services;
@@ -15,7 +16,7 @@ builder.Services.AddDbContext<HNGxVideoStreamingDbContext>(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IWhisperService, WhisperService>();
 builder.Services.AddScoped<IUploadService, UploadService>();
-
+builder.Services.AddHostedService<CleanupBackgroundService>();
 // Add services to the container.
 builder.Services.AddCors(options =>
 {
@@ -34,12 +35,14 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI();
+app.UseCors(builder =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
+    builder.AllowAnyOrigin()
+           .AllowAnyMethod()
+           .AllowAnyHeader();
+});
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

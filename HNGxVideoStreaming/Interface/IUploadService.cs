@@ -6,6 +6,7 @@ namespace HNGxVideoStreaming.Interface
     {
         public Task<ResponseContext> UploadChunks(string uploadKeya);
         public Task<ResponseContext> UploadComplete(string uploadKey);
+        public Task<ResponseContext> DeleteVideo(string uploadKey);
         public Task<ResponseContext> StartUpload(string fileName);
         public Task<ResponseContext> StreamVideo(string uploadKey);
         public Task<ResponseContext> GetAll();

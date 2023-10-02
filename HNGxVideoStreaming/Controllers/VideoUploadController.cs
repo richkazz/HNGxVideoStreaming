@@ -39,6 +39,11 @@ namespace HNGxVideoStreaming.Controllers
         {
             return Ok(await UploadService.UploadComplete(uploadKey));
         }
+        [HttpDelete("DeleteVideo")]
+        public async Task<IActionResult> DeleteVideo(string uploadKey)
+        {
+            return Ok(await UploadService.DeleteVideo(uploadKey));
+        }
         [HttpGet("StreamVideo/{uploadKey}")]
         public async Task<IActionResult> StreamVideo(string uploadKey)
         {

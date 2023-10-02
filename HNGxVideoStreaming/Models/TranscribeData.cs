@@ -1,10 +1,10 @@
 ﻿using System.Text.Json.Serialization;
+using TestmeQA.Domain.Common;
 
 namespace HNGxVideoStreaming.Models
 {
-    public class TranscribeData
+    public class TranscribeData : EntityBase
     {
-        public int Id { get; set; }
         public string Text { get; set; } = string.Empty;
         public TimeSpan Start { get; set; }
         public TimeSpan End { get; set; }

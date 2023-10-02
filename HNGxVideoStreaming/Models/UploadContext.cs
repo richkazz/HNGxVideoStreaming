@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TestmeQA.Domain.Common;
 
 namespace HNGxVideoStreaming.Models
 {
-    public class UploadContext
+    public class UploadContext : EntityBase
     {
-        [Key]
-        public int Id { get; set; }
         public string UploadKey { get; set; }
         public string FileName { get; set; }
         public int currentId { get; set; }
