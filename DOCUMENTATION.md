@@ -95,7 +95,12 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
 - HTTP status codes will indicate the success or failure of each request.
 
 ## A HTML and JavaScript code example
-
+- steps to start
+- click on  start upload to get key
+- click on initiate Recording
+- click on Start Recording
+- after some minutes click on Stop Recording
+- check the console for the response url to the video and transcript
 <html>
 <head>
     <meta charset="UTF-8" />
@@ -108,8 +113,8 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
     <button class="start-btn">Start Recording</button>
     <button class="stop-btn">Stop Recording</button>
     <button class="btn btn-primary" onclick="rec()" id="startButton">initiate Recording</button>
-    <button class="btn btn-primary" id="startButton" onclick="startUpload('karo')">start upload to get key</button>
-
+    <button class="btn btn-primary" id="start button" onclick="startUpload('karo')">start upload to get key</button>
+    <div id="resopnseId"></div>
     <script>
         var uploadKey = "";
         var baseApiUrl = "https://richkazz.bsite.net";
@@ -141,6 +146,7 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
                 method: 'POST'
             });
             var res = await response.json();
+            document.getElementById("resopnseId").innerHTML = res.data.videoUrl;
             console.log(res);
             return response;;
         }
