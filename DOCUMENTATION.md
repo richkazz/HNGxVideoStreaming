@@ -1,4 +1,4 @@
-```markdown
+
 # Video Upload API Documentation
 
 Welcome to the Video Upload API documentation for HNGxVideoStreaming. This API allows you to manage video uploads, transcriptions, and streaming. Below are the available endpoints and their descriptions.
