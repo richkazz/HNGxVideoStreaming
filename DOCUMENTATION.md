@@ -97,14 +97,11 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
 ## A HTML and JavaScript code example
 
 <html>
-
 <head>
     <meta charset="UTF-8" />
-
     <title>Screen Recording with client
         side javascript</title>
 </head>
-
 <body>
 
     <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
@@ -254,4 +251,4 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
 
 </html>
 
-- PS: the test the audio play a sound on your system while recording
+- PS: To test the audio play a sound on your system while recording
