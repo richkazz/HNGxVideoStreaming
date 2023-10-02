@@ -1,6 +1,5 @@
 `VideoUploadController` API:
 
-```markdown
 # HNGxVideoStreaming
 
 HNGxVideoStreaming is a video upload, transcription, and streaming service designed to simplify the process of uploading, transcribing, and streaming video content.
@@ -50,7 +49,7 @@ To get started with HNGxVideoStreaming, follow these steps:
 1. Clone this repository to your local machine:
 
    ```bash
-   git clone https://github.com/your-username/HNGxVideoStreaming.git
+   git clone https://github.com/richkazz/HNGxVideoStreaming.git
    ```
 
 2. Configure your environment variables, database, and storage settings as needed.
@@ -67,4 +66,3 @@ For detailed documentation of the API endpoints, refer to the [API Documentation
 
 If an error occurs during API requests, the API will return an error response with details in the `ErrorMessage` field. Refer to the API documentation for specific error codes and descriptions.
 
-```
