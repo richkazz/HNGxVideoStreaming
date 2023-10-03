@@ -102,24 +102,35 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
 - after some minutes click on Stop Recording
 - check the console for the response url to the video and transcript
 <html>
+
 <head>
     <meta charset="UTF-8" />
+
     <title>Screen Recording with client
         side javascript</title>
 </head>
+
 <body>
 
     <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
     <button class="start-btn">Start Recording</button>
     <button class="stop-btn">Stop Recording</button>
     <button class="btn btn-primary" onclick="rec()" id="startButton">initiate Recording</button>
-    <button class="btn btn-primary" id="start button" onclick="startUpload('karo')">start upload to get key</button>
+    <button class="btn btn-primary" id="startButton" onclick="startUpload('karo')">start upload to get key</button>
     <div id="resopnseId"></div>
     <script>
         var uploadKey = "";
         var baseApiUrl = "https://richkazz.bsite.net";
         var start = document.querySelector('.start-btn');
         var stop = document.querySelector('.stop-btn');
+        // Initialize queues for blobs and byte arrays
+        const blobQueue = [];
+        const byteArrayQueue = [];
+        const record = document.getElementById("startButton");
+        let videoId = undefined;
+        var data = [];
+        var isUploadComplete = false;
+
         async function startUpload(fileName) {
             const requestUri = `${baseApiUrl}/VideoUpload/startUpload?fileName=${fileName}`;
             const response = await fetch(requestUri, {
@@ -127,6 +138,7 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
             });
             var res = await response.json();
             uploadKey = res.data.uploadKey;
+
             console.log(res);
             return res;
         }
@@ -137,7 +149,7 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
                 method: 'POST',
                 body: chunkData
             });
-            return await response.json();;
+            return response;
         }
 
         async function uploadComplete(uploadKey) {
@@ -151,8 +163,57 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
             return response;;
         }
 
-        const record = document.getElementById("startButton");
-        let videoId = undefined;
+        // Function to process a blob into a byte array
+        async function processBlobToByteArray(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const byteArray = new Uint8Array(event.target.result);
+                    resolve(byteArray);
+                };
+                reader.onerror = (error) => {
+                    reject(error);
+                };
+                reader.readAsArrayBuffer(blob);
+            });
+        }
+
+        // Function to send byte array data to the API
+        async function sendByteArrayToAPI(byteArray) {
+            try {
+                // Replace 'API_URL' with your actual API endpoint
+                const response = await uploadChunks(uploadKey, byteArray);
+                console.log("sending byte array to api");
+                console.log(response);
+                if (isUploadComplete) {
+                    var result = uploadComplete(uploadKey);
+                }
+                if (response.ok) {
+                    console.log('Successfully sent byte array to API');
+                } else {
+                    console.error('Failed to send byte array to API');
+                }
+                return response.json();
+            } catch (error) {
+                console.error('Error sending byte array to API:', error);
+            }
+        }
+
+        // Function to process and send blobs
+        async function processAndSendBlobs() {
+            while (blobQueue.length > 0) {
+                const blob = blobQueue.shift();
+                const byteArray = await processBlobToByteArray(blob);
+                byteArrayQueue.push(byteArray);
+
+                if (byteArrayQueue.length === 1) {
+                    // Send the topmost byte array to the API
+                    const topByteArray = byteArrayQueue.shift();
+                    await sendByteArrayToAPI(topByteArray);
+                }
+            }
+        }
+
         // Function to convert a Blob to a byte array
         function blobToByteArray(blob, callback) {
             const reader = new FileReader();
@@ -167,8 +228,6 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
         }
         // Function to start screen recording
 
-        var data = [];
-        var isUploadComplete = false;
         function rec() {
             const gdmOptions = {
                 video: {
@@ -197,9 +256,6 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
                     let audio = await navigator.mediaDevices.getUserMedia({
                         audio: true, video: false
                     })
-
-
-
                     // Combine both video/audio stream with MediaStream object
                     let combine = new MediaStream(
                         [...e.getTracks(), ...audio.getTracks()])
@@ -229,17 +285,12 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
                     when data available */
                     recorder.ondataavailable = (e) => {
                         data.push(e.data);
-                        
-                        blobToByteArray(e.data, (arr) => {
-                            console.log(arr);
-                            uploadChunks(uploadKey, arr).then(() => {
-                                if(isUploadComplete){
-                                    var result = uploadComplete(uploadKey);
-                                }
-                                
-                                console.log(result);
-                            });
-                        })
+                        console.log("adding blob to queue to be processed");
+                        blobQueue.push(e.data);
+                        // Start processing and sending blobs
+                        if (blobQueue.length === 1) {
+                            processAndSendBlobs();
+                        }
                     };
                     recorder.onstop = () => {
 
@@ -247,14 +298,12 @@ The base URL for all API endpoints is `https://richkazz.bsite.net`.
                         blob type mp4 media */
                         let blobData = new Blob(data, { type: 'video/mp4' });
                         isUploadComplete = true;
-                       
+
                     };
                 });
-
         }
     </script>
 </body>
 
 </html>
-
 - PS: To test the audio play a sound on your system while recording
